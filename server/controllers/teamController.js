@@ -170,6 +170,7 @@ export const inviteMember = async (req, res, next) => {
     const teamId = req.params.id
     const currentUserId = req.user.id
     const { email } = req.body
+    const normalizedEmail = email.toLowerCase().trim()
 
     const membership = await db.query(
       'SELECT role FROM team_members WHERE team_id = $1 AND user_id = $2',
@@ -180,13 +181,37 @@ export const inviteMember = async (req, res, next) => {
       return res.status(403).json({ error: 'Only team owners or admins can send invitations' })
     }
 
+    const targetUser = await db.query(
+      'SELECT id, name, email FROM users WHERE email = $1',
+      [normalizedEmail]
+    )
+
+    if (targetUser.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found. The person being invited must register first.' })
+    }
+
+    const alreadyMember = await db.query(
+      'SELECT id FROM team_members WHERE team_id = $1 AND user_id = $2',
+      [teamId, targetUser.rows[0].id]
+    )
+
+    if (alreadyMember.rows.length > 0) {
+      return res.status(400).json({ error: 'User is already a member of this team' })
+    }
+
     const token = crypto.randomBytes(24).toString('hex')
     const inviteLink = `${process.env.CLIENT_URL || 'http://localhost:5173'}/join?token=${token}&teamId=${teamId}`
 
-    console.log(`[STUBBED EMAIL INVITATION] Sent to: ${email} | Link: ${inviteLink}`)
+    await db.query(
+      `INSERT INTO team_invitations (team_id, email, token)
+       VALUES ($1, $2, $3)`,
+      [teamId, normalizedEmail, token]
+    )
+
+    console.log(`[STUBBED EMAIL INVITATION] Sent to: ${normalizedEmail} | Link: ${inviteLink}`)
 
     return res.json({
-      message: `Invitation successfully sent to ${email}`,
+      message: `Invitation successfully sent to ${normalizedEmail}`,
       inviteToken: token,
       inviteLink,
     })
@@ -194,3 +219,59 @@ export const inviteMember = async (req, res, next) => {
     next(error)
   }
 }
+
+export const joinTeam = async (req, res, next) => {
+  try {
+    const teamId = req.params.id
+    const { token } = req.body
+    const userId = req.user.id
+    const userEmail = req.user.email.toLowerCase().trim()
+
+    if (!token) {
+      return res.status(400).json({ error: 'Invitation token is required' })
+    }
+
+    const inviteResult = await db.query(
+      `SELECT * FROM team_invitations
+       WHERE team_id = $1 AND token = $2 AND status = 'pending' AND expires_at > CURRENT_TIMESTAMP`,
+      [teamId, token]
+    )
+
+    if (inviteResult.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid or expired invitation token' })
+    }
+
+    const invitation = inviteResult.rows[0]
+
+    if (invitation.email.toLowerCase() !== userEmail) {
+      return res.status(403).json({ error: 'This invitation was sent to a different email address' })
+    }
+
+    const alreadyMember = await db.query(
+      'SELECT id FROM team_members WHERE team_id = $1 AND user_id = $2',
+      [teamId, userId]
+    )
+
+    if (alreadyMember.rows.length > 0) {
+      return res.status(400).json({ error: 'You are already a member of this team' })
+    }
+
+    await db.query(
+      'INSERT INTO team_members (team_id, user_id, role) VALUES ($1, $2, $3)',
+      [teamId, userId, 'member']
+    )
+
+    await db.query(
+      `UPDATE team_invitations SET status = 'accepted' WHERE id = $1`,
+      [invitation.id]
+    )
+
+    return res.json({
+      message: 'Successfully joined team!',
+      teamId: Number(teamId),
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+

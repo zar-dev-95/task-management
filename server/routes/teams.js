@@ -6,6 +6,7 @@ import {
   addTeamMember,
   deleteTeam,
   inviteMember,
+  joinTeam,
 } from '../controllers/teamController.js'
 import { isAuthenticated } from '../middleware/auth.js'
 import {
@@ -24,5 +25,6 @@ router.get('/:id', getTeamById)
 router.post('/:id/members', validateAddMember, addTeamMember)
 router.delete('/:id', deleteTeam)
 router.post('/:id/invite', validateAddMember, inviteMember)
+router.post('/:id/join', joinTeam)
 
 export default router
