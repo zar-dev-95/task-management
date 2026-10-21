@@ -1,32 +1,23 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
+import { useAuthStore } from './store/useAuthStore.js'
+import AuthPage from './pages/AuthPage.jsx'
+import DashboardPage from './pages/DashboardPage.jsx'
 
 export default function App() {
-  const [count, setCount] = useState(0)
+  const { user, loading, checkAuth } = useAuthStore()
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6">
-      <div className="max-w-md w-full bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center space-y-6">
-        <div className="space-y-2">
-          <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-950/70 border border-emerald-800/60 rounded-full">
-            Tailwind CSS Active
-          </span>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white">
-            Clean Project
-          </h1>
-          <p className="text-sm text-slate-400">
-            All default assets removed. Ready to start building!
-          </p>
-        </div>
+  useEffect(() => {
+    checkAuth()
+  }, [])
 
-        <div>
-          <button
-            onClick={() => setCount((c) => c + 1)}
-            className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold rounded-xl shadow-lg transition-all cursor-pointer"
-          >
-            Count is: {count}
-          </button>
-        </div>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+        <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+        <p className="mt-3 text-xs font-medium text-slate-500">Loading TaskDesk...</p>
       </div>
-    </div>
-  )
+    )
+  }
+
+  return user ? <DashboardPage /> : <AuthPage />
 }
