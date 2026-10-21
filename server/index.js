@@ -7,6 +7,8 @@ import passport from 'passport'
 import { pool } from './config/db.js'
 import { configurePassport } from './config/passport.js'
 import authRoutes from './routes/auth.js'
+import teamRoutes from './routes/teams.js'
+import taskRoutes from './routes/tasks.js'
 
 dotenv.config()
 
@@ -68,6 +70,8 @@ app.get('/api/health', (req, res) => {
 })
 
 app.use('/api/auth', authRoutes)
+app.use('/api/teams', teamRoutes)
+app.use('/api/tasks', taskRoutes)
 
 app.use((err, req, res, next) => {
   console.error(err)
