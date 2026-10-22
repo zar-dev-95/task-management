@@ -2,7 +2,7 @@ import { LogOut, Bell, CheckSquare, Menu } from './Icons.jsx'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useTaskStore } from '../store/useTaskStore.js'
 
-export default function Navbar({ onToggleMobileSidebar }) {
+export default function Navbar({ onToggleMobileSidebar, onToggleDueAlert, isDueAlertOpen }) {
   const { user, logout } = useAuthStore()
   const { reminders } = useTaskStore()
 
@@ -48,21 +48,45 @@ export default function Navbar({ onToggleMobileSidebar }) {
       {/* ─── Right: Actions ─── */}
       <div className="flex items-center gap-2.5 sm:gap-3.5">
 
-        {/* Due soon pill */}
-        {urgentCount > 0 && (
-          <div
-            title={`${urgentCount} task${urgentCount > 1 ? 's' : ''} due within 48 hours`}
-            className="flex items-center gap-1.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold"
-          >
-            <Bell className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-            <span className="hidden xs:inline sm:inline">
-              {urgentCount} due soon
+        {/* Due soon / Notification button (Clickable to reopen or view tasks near deadline) */}
+        <button
+          type="button"
+          onClick={onToggleDueAlert}
+          title={
+            urgentCount > 0
+              ? `${urgentCount} task${urgentCount > 1 ? 's' : ''} due within 48 hours. Click to ${isDueAlertOpen ? 'hide/view' : 'reopen'} list.`
+              : 'Notifications: All caught up, no tasks due soon.'
+          }
+          className={`flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border text-xs font-semibold cursor-pointer transition-all ${
+            urgentCount > 0
+              ? isDueAlertOpen
+                ? 'bg-amber-100 border-amber-300 text-amber-950 shadow-2xs'
+                : 'bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-800'
+              : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-600'
+          }`}
+        >
+          {urgentCount > 0 && (
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
             </span>
-            <span className="inline xs:hidden sm:hidden font-bold">
-              {urgentCount}
+          )}
+          <Bell className={`w-3.5 h-3.5 ${urgentCount > 0 ? 'text-amber-600' : 'text-slate-500'} shrink-0`} />
+          {urgentCount > 0 ? (
+            <>
+              <span className="hidden xs:inline sm:inline">
+                {urgentCount} due soon
+              </span>
+              <span className="inline xs:hidden sm:hidden font-bold">
+                {urgentCount}
+              </span>
+            </>
+          ) : (
+            <span className="hidden sm:inline text-slate-500 font-normal">
+              0 due
             </span>
-          </div>
-        )}
+          )}
+        </button>
 
         {/* Divider */}
         <div className="w-[1px] h-6 bg-slate-200 hidden xs:block" />
