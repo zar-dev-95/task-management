@@ -70,6 +70,14 @@ configurePassport(passport)
 app.use(passport.initialize())
 app.use(passport.session())
 
+app.get('/', (req, res) => {
+  res.json({
+    message: 'TaskDesk API Server is running successfully',
+    status: 'online',
+    healthCheck: '/api/health',
+  })
+})
+
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
