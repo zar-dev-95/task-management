@@ -42,6 +42,14 @@ export const useTeamStore = create((set, get) => ({
   createTeam: async (name, description) => {
     try {
       set({ loading: true, error: null })
+      const normalized = name.trim().toLowerCase()
+      const existing = get().teams.find((t) => t.name.trim().toLowerCase() === normalized)
+      if (existing) {
+        const errMsg = `A team named "${existing.name}" already exists.`
+        set({ loading: false, error: errMsg })
+        throw new Error(errMsg)
+      }
+
       const res = await api.post('/teams', { name, description })
       const newTeam = res.team
       set((state) => ({
@@ -63,6 +71,17 @@ export const useTeamStore = create((set, get) => ({
         members: [...state.members, res.member],
       }))
       return res.member
+    } catch (err) {
+      throw err
+    }
+  },
+
+  removeMember: async (teamId, memberId) => {
+    try {
+      await api.delete(`/teams/${teamId}/members/${memberId}`)
+      set((state) => ({
+        members: state.members.filter((m) => m.id !== memberId),
+      }))
     } catch (err) {
       throw err
     }
@@ -90,6 +109,42 @@ export const useTeamStore = create((set, get) => ({
       if (get().selectedTeam) {
         get().selectTeam(get().selectedTeam.id)
       }
+    } catch (err) {
+      throw err
+    }
+  },
+
+  invitations: [],
+
+  fetchInvitations: async () => {
+    try {
+      const res = await api.get('/teams/invitations/my-invitations')
+      set({ invitations: res.invitations || [] })
+    } catch {
+      // ignore
+    }
+  },
+
+  joinTeamWithToken: async (teamId, token) => {
+    try {
+      const res = await api.post(`/teams/${teamId}/join`, { token })
+      await get().fetchTeams()
+      await get().fetchInvitations()
+      if (teamId) {
+        await get().selectTeam(teamId)
+      }
+      return res
+    } catch (err) {
+      throw err
+    }
+  },
+
+  declineInvitation: async (invitationId) => {
+    try {
+      await api.post(`/teams/invitations/${invitationId}/decline`)
+      set((state) => ({
+        invitations: state.invitations.filter((i) => i.id !== invitationId),
+      }))
     } catch (err) {
       throw err
     }

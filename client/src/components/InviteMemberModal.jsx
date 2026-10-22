@@ -135,7 +135,7 @@ export default function InviteMemberModal({ isOpen, onClose }) {
                   />
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1">
-                  User must already have an account on TaskDesk.
+                  Instantly adds this user to the team directly (no invite link or acceptance needed).
                 </p>
               </div>
 
@@ -164,9 +164,9 @@ export default function InviteMemberModal({ isOpen, onClose }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm shadow-blue-500/25 transition-colors cursor-pointer"
                 >
-                  {loading ? 'Adding...' : 'Add Member'}
+                  {loading ? 'Adding...' : 'Add Member Directly'}
                 </button>
               </div>
             </form>
@@ -188,7 +188,7 @@ export default function InviteMemberModal({ isOpen, onClose }) {
                   />
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1">
-                  Generates an invitation link (simulated email delivery as required by assessment).
+                  When this user logs into their account, an <strong>"Accept Invitation"</strong> banner will appear at the top of their dashboard automatically.
                 </p>
               </div>
 
@@ -225,7 +225,7 @@ export default function InviteMemberModal({ isOpen, onClose }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm shadow-blue-500/25 transition-colors cursor-pointer"
                 >
                   {loading ? 'Generating...' : 'Send Invitation'}
                 </button>

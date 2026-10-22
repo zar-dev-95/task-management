@@ -2,10 +2,17 @@ import { useState, useEffect } from 'react'
 import { X, Calendar, User, Flag, CheckCircle } from './Icons.jsx'
 import { useTaskStore } from '../store/useTaskStore.js'
 import { useTeamStore } from '../store/useTeamStore.js'
+import { useAuthStore } from '../store/useAuthStore.js'
 
 export default function TaskModal({ isOpen, onClose, taskToEdit = null }) {
-  const { selectedTeam, members } = useTeamStore()
+  const { user } = useAuthStore()
+  const { selectedTeam, members, userRole } = useTeamStore()
   const { createTask, updateTask } = useTaskStore()
+
+  const isCreator = Number(taskToEdit?.created_by) === Number(user?.id)
+  const isAssignee = Number(taskToEdit?.assigned_to) === Number(user?.id)
+  const isTeamOwner = Number(selectedTeam?.created_by) === Number(user?.id) || ['owner', 'admin'].includes(userRole)
+  const canModify = !taskToEdit || isCreator || isAssignee || isTeamOwner
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -39,6 +46,10 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!canModify) {
+      setError('Forbidden: Only the assigned member, task creator, or team owner can edit this task.')
+      return
+    }
     if (!title.trim()) {
       setError('Task title is required')
       return
@@ -214,10 +225,14 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null }) {
             </button>
             <button
               type="submit"
-              disabled={loading}
-              className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+              disabled={loading || !canModify}
+              className={`px-5 py-2 rounded-lg text-xs font-semibold shadow-sm transition-colors ${
+                !canModify
+                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  : 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer'
+              }`}
             >
-              {loading ? 'Saving...' : taskToEdit ? 'Save Changes' : 'Create Task'}
+              {loading ? 'Saving...' : !canModify ? 'Read-only (No Permission)' : taskToEdit ? 'Save Changes' : 'Create Task'}
             </button>
           </div>
         </form>

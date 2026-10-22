@@ -10,14 +10,15 @@ import {
   Clock,
   CheckCircle2,
   ListTodo,
+  UserPlus,
 } from './Icons.jsx'
 import { useTaskStore } from '../store/useTaskStore.js'
 import { useTeamStore } from '../store/useTeamStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 
-export default function TaskBoard({ onOpenCreateTask, onOpenEditTask }) {
+export default function TaskBoard({ onOpenCreateTask, onOpenEditTask, onOpenInvite }) {
   const { user } = useAuthStore()
-  const { selectedTeam, members } = useTeamStore()
+  const { selectedTeam, members, userRole } = useTeamStore()
   const { tasks, loading, filters, setFilter, resetFilters, updateTask, deleteTask } = useTaskStore()
   const [deletingId, setDeletingId] = useState(null)
 
@@ -30,8 +31,11 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask }) {
   }
 
   const handleDeleteTask = async (task) => {
-    if (task.created_by !== user?.id) {
-      alert('Forbidden: Only the task creator can delete this task.')
+    const isCreator = Number(task.created_by) === Number(user?.id)
+    const isTeamOwner = Number(selectedTeam?.created_by) === Number(user?.id) || ['owner', 'admin'].includes(userRole)
+
+    if (!isCreator && !isTeamOwner) {
+      alert('Forbidden: Only the task creator or team owner can delete this task.')
       return
     }
 
@@ -58,7 +62,7 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask }) {
   ]
 
   return (
-    <main className="flex-1 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden bg-white">
+    <main className="flex-1 flex flex-col h-[calc(100vh-4.25rem)] overflow-hidden bg-white">
       {/* Team Top Header */}
       <div className="px-8 py-5 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
         <div>
@@ -67,9 +71,14 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask }) {
               {selectedTeam ? selectedTeam.name : 'Select or Create a Team'}
             </h1>
             {selectedTeam && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-600 font-medium">
-                {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-600 font-medium">
+                  {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
+                </span>
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 font-medium">
+                  {members.length} {members.length === 1 ? 'member' : 'members'}
+                </span>
+              </div>
             )}
           </div>
           <p className="text-xs text-slate-500 mt-1 max-w-xl truncate">
@@ -78,13 +87,23 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask }) {
         </div>
 
         {selectedTeam && (
-          <button
-            onClick={onOpenCreateTask}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Task</span>
-          </button>
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <button
+              onClick={onOpenCreateTask}
+              className="flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm shadow-blue-500/25 transition-colors cursor-pointer min-w-[125px]"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Task</span>
+            </button>
+
+            <button
+              onClick={onOpenInvite}
+              className="flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm shadow-blue-500/25 transition-colors cursor-pointer min-w-[125px]"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Add Member</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -157,7 +176,7 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask }) {
       )}
 
       {/* Task Content Board */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto p-8">
+      <div className="flex-1 overflow-x-auto p-6 min-h-0 bg-slate-50/40">
         {!selectedTeam ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
@@ -191,7 +210,7 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask }) {
             ) : (
               <button
                 onClick={onOpenCreateTask}
-                className="mt-3 px-4 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors cursor-pointer"
+                className="mt-3 px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 shadow-sm shadow-blue-500/25 transition-colors cursor-pointer"
               >
                 Create Task
               </button>
@@ -199,15 +218,27 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask }) {
           </div>
         ) : (
           /* Kanban 3-Column Grid */
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full min-h-0">
             {columns.map((col) => {
-              const columnTasks = tasks.filter((t) => t.status === col.key)
+              // High priority tasks remain on top (high: 1, medium: 2, low: 3)
+              const PRIORITY_ORDER = { high: 1, medium: 2, low: 3 }
+              const columnTasks = tasks
+                .filter((t) => t.status === col.key)
+                .sort((a, b) => {
+                  const pA = PRIORITY_ORDER[a.priority?.toLowerCase()] || 2
+                  const pB = PRIORITY_ORDER[b.priority?.toLowerCase()] || 2
+                  if (pA !== pB) return pA - pB
+                  return new Date(a.due_date || '9999-12-31') - new Date(b.due_date || '9999-12-31')
+                })
               const Icon = col.icon
 
               return (
-                <div key={col.key} className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 flex flex-col">
+                <div
+                  key={col.key}
+                  className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-4 flex flex-col h-full min-h-0 shadow-sm"
+                >
                   {/* Column Header */}
-                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/60">
+                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/70 shrink-0">
                     <div className="flex items-center gap-2">
                       <Icon className={`w-4 h-4 ${col.color}`} />
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
@@ -219,15 +250,19 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask }) {
                     </span>
                   </div>
 
-                  {/* Column Tasks */}
-                  <div className="space-y-3 min-h-[180px]">
+                  {/* Column Tasks (Independently scrollable with sleek scrollbar) */}
+                  <div className="flex-1 overflow-y-auto pr-1.5 space-y-3 min-h-0 custom-scrollbar">
                     {columnTasks.length === 0 ? (
                       <div className="py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg">
                         No {col.label.toLowerCase()} tasks
                       </div>
                     ) : (
                       columnTasks.map((task) => {
-                        const isCreator = task.created_by === user?.id
+                        const isCreator = Number(task.created_by) === Number(user?.id)
+                        const isAssignee = Number(task.assigned_to) === Number(user?.id)
+                        const isTeamOwner = Number(selectedTeam?.created_by) === Number(user?.id) || ['owner', 'admin'].includes(userRole)
+                        const canModify = isCreator || isAssignee || isTeamOwner
+                        const canDelete = isCreator || isTeamOwner
 
                         // Priority chip styling
                         const priorityBadges = {
@@ -250,26 +285,36 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask }) {
                                 {task.priority}
                               </span>
 
-                              {/* Task Action Buttons */}
+                              {/* Task Action Buttons - Only related members */}
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button
-                                  onClick={() => onOpenEditTask(task)}
-                                  title="Edit task"
-                                  className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors cursor-pointer"
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                </button>
+                                {canModify && (
+                                  <button
+                                    onClick={() => onOpenEditTask(task)}
+                                    title="Edit task"
+                                    className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
 
-                                {/* Creator-only Delete */}
-                                {isCreator && (
+                                {canDelete && (
                                   <button
                                     onClick={() => handleDeleteTask(task)}
                                     disabled={deletingId === task.id}
-                                    title="Delete task (Only creator can delete)"
+                                    title="Delete task"
                                     className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
+                                )}
+
+                                {!canModify && (
+                                  <span
+                                    title="Read-only: Only assigned member, creator, or team owner can edit this task"
+                                    className="text-[10px] text-slate-400 italic px-1 select-none"
+                                  >
+                                    View only
+                                  </span>
                                 )}
                               </div>
                             </div>
@@ -307,17 +352,29 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask }) {
                               )}
                             </div>
 
-                            {/* Quick Status Dropdown */}
+                            {/* Quick Status Dropdown (interactive only for related members) */}
                             <div className="pt-1">
-                              <select
-                                value={task.status}
-                                onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                                className="w-full h-7 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-[11px] font-medium text-slate-700 focus:outline-none focus:border-slate-900 cursor-pointer"
-                              >
-                                <option value="todo">Status: To Do</option>
-                                <option value="in_progress">Status: In Progress</option>
-                                <option value="completed">Status: Completed</option>
-                              </select>
+                              {canModify ? (
+                                <select
+                                  value={task.status}
+                                  onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                                  className="w-full h-7 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-[11px] font-medium text-slate-700 focus:outline-none focus:border-slate-900 cursor-pointer"
+                                >
+                                  <option value="todo">Status: To Do</option>
+                                  <option value="in_progress">Status: In Progress</option>
+                                  <option value="completed">Status: Completed</option>
+                                </select>
+                              ) : (
+                                <div
+                                  title="Read-only: Only the assigned member, creator, or team owner can change status"
+                                  className="w-full h-7 px-2 bg-slate-50/70 border border-slate-200/80 rounded text-[11px] text-slate-500 flex items-center justify-between select-none cursor-not-allowed"
+                                >
+                                  <span className="capitalize">
+                                    Status: {task.status.replace('_', ' ')}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400 font-mono">🔒</span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         )

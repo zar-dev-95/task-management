@@ -95,7 +95,7 @@ export default function CreateTeamModal({ isOpen, onClose }) {
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+              className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm shadow-blue-500/25 transition-colors cursor-pointer"
             >
               {loading ? 'Creating...' : 'Create Team'}
             </button>
