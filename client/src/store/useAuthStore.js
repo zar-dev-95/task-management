@@ -1,17 +1,20 @@
 import { create } from './zustand.js'
 import { api } from '../api/apiClient.js'
 
+const hasSavedSession = typeof window !== 'undefined' && Boolean(localStorage.getItem('taskdesk_has_session'))
+
 export const useAuthStore = create((set) => ({
   user: null,
-  loading: true,
+  loading: hasSavedSession,
   error: null,
 
   checkAuth: async () => {
     try {
-      set({ loading: true, error: null })
       const res = await api.get('/auth/me')
+      localStorage.setItem('taskdesk_has_session', 'true')
       set({ user: res.user, loading: false })
     } catch {
+      localStorage.removeItem('taskdesk_has_session')
       set({ user: null, loading: false })
     }
   },
@@ -20,6 +23,7 @@ export const useAuthStore = create((set) => ({
     try {
       set({ loading: true, error: null })
       const res = await api.post('/auth/login', { email, password })
+      localStorage.setItem('taskdesk_has_session', 'true')
       set({ user: res.user, loading: false, error: null })
       return res.user
     } catch (err) {
@@ -32,6 +36,7 @@ export const useAuthStore = create((set) => ({
     try {
       set({ loading: true, error: null })
       const res = await api.post('/auth/register', { name, email, password })
+      localStorage.setItem('taskdesk_has_session', 'true')
       set({ user: res.user, loading: false, error: null })
       return res.user
     } catch (err) {
@@ -46,6 +51,7 @@ export const useAuthStore = create((set) => ({
     } catch (err) {
       console.error('Logout error:', err)
     } finally {
+      localStorage.removeItem('taskdesk_has_session')
       set({ user: null, error: null })
     }
   },

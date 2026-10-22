@@ -1,7 +1,17 @@
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { useAuthStore } from './store/useAuthStore.js'
-import AuthPage from './pages/AuthPage.jsx'
-import DashboardPage from './pages/DashboardPage.jsx'
+
+const AuthPage = lazy(() => import('./pages/AuthPage.jsx'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage.jsx'))
+
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+      <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <p className="mt-3 text-xs font-semibold text-slate-500">Loading TaskDesk...</p>
+    </div>
+  )
+}
 
 export default function App() {
   const { user, loading, checkAuth } = useAuthStore()
@@ -11,13 +21,13 @@ export default function App() {
   }, [])
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
-        <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-        <p className="mt-3 text-xs font-medium text-slate-500">Loading TaskDesk...</p>
-      </div>
-    )
+    return <LoadingScreen />
   }
 
-  return user ? <DashboardPage /> : <AuthPage />
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      {user ? <DashboardPage /> : <AuthPage />}
+    </Suspense>
+  )
 }
+

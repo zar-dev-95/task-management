@@ -57,7 +57,7 @@ if (usePgSession && process.env.DATABASE_URL) {
   sessionStore = new PgSession({
     pool,
     tableName: 'session',
-    createTableIfMissing: true,
+    createTableIfMissing: !isProduction,
   })
   sessionStore.on('error', (err) => {
     console.error('PostgreSQL Session Store Error:', err.message)

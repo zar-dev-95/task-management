@@ -16,6 +16,9 @@ const poolConfig = process.env.DATABASE_URL
       ssl: process.env.DATABASE_URL.includes('localhost')
         ? false
         : { rejectUnauthorized: false },
+      max: process.env.VERCEL ? 3 : 10,
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
     }
   : {
       host: process.env.PGHOST || 'localhost',
