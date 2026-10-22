@@ -5,9 +5,14 @@ dotenv.config()
 
 const { Pool } = pkg
 
+const cleanConnectionString = (url) => {
+  if (!url) return url
+  return url.replace(/([?&])sslmode=[^&]+(&|$)/, (m, p, s) => (s === '&' ? p : '')).replace(/\?$/, '')
+}
+
 const poolConfig = process.env.DATABASE_URL
   ? {
-      connectionString: process.env.DATABASE_URL,
+      connectionString: cleanConnectionString(process.env.DATABASE_URL),
       ssl: process.env.DATABASE_URL.includes('localhost')
         ? false
         : { rejectUnauthorized: false },

@@ -1,0 +1,191 @@
+{
+  "info": {
+    "name": "Team Task Manager API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "health"]
+        }
+      }
+    },
+    {
+      "name": "2. Register User (Alice)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Alice\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/auth/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "3. Get Current User (/me)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/auth/me",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "auth", "me"]
+        }
+      }
+    },
+    {
+      "name": "4. Create Team",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Frontend Team\",\n  \"description\": \"Responsible for UI and React components\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/teams",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "teams"]
+        }
+      }
+    },
+    {
+      "name": "5. Get My Teams",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/teams",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "teams"]
+        }
+      }
+    },
+    {
+      "name": "6. Create Task",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Build navigation bar\",\n  \"description\": \"Implement responsive navbar with Tailwind CSS\",\n  \"status\": \"todo\",\n  \"priority\": \"high\",\n  \"team_id\": 1,\n  \"due_date\": \"2026-10-25T12:00:00Z\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/tasks",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "tasks"]
+        }
+      }
+    },
+    {
+      "name": "7. Get Tasks (Filter & Search)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/tasks?teamId=1&status=todo&search=navbar",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "tasks"],
+          "query": [
+            { "key": "teamId", "value": "1" },
+            { "key": "status", "value": "todo" },
+            { "key": "search", "value": "navbar" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "8. Update Task Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"in_progress\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/tasks/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "tasks", "1"]
+        }
+      }
+    },
+    {
+      "name": "9. Get Due Date Reminders",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/tasks/reminders/due-soon",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "tasks", "reminders", "due-soon"]
+        }
+      }
+    },
+    {
+      "name": "10. Delete Task (Creator Only)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/tasks/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "tasks", "1"]
+        }
+      }
+    },
+    {
+      "name": "11. Logout",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/auth/logout",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "auth", "logout"]
+        }
+      }
+    }
+  ]
+}

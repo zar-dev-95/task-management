@@ -6,9 +6,27 @@ export const createTeam = async (req, res, next) => {
     const { name, description } = req.body
     const userId = req.user.id
 
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Team name is required' })
+    }
+
+    const trimmedName = name.trim()
+
+    // Case-insensitive duplicate team check
+    const existing = await db.query(
+      'SELECT id, name FROM teams WHERE LOWER(TRIM(name)) = LOWER($1)',
+      [trimmedName]
+    )
+
+    if (existing.rows.length > 0) {
+      return res.status(400).json({
+        error: `A team named "${existing.rows[0].name}" already exists. Team names must be unique.`,
+      })
+    }
+
     const teamResult = await db.query(
       'INSERT INTO teams (name, description, created_by) VALUES ($1, $2, $3) RETURNING *',
-      [name.trim(), description ? description.trim() : null, userId]
+      [trimmedName, description ? description.trim() : null, userId]
     )
     const team = teamResult.rows[0]
 
@@ -136,6 +154,69 @@ export const addTeamMember = async (req, res, next) => {
         email: targetUser.rows[0].email,
         role,
       },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const removeTeamMember = async (req, res, next) => {
+  try {
+    const { id: teamId, memberId } = req.params
+    const currentUserId = req.user.id
+    const targetUserId = Number(memberId)
+
+    const membership = await db.query(
+      'SELECT role FROM team_members WHERE team_id = $1 AND user_id = $2',
+      [teamId, currentUserId]
+    )
+
+    if (membership.rows.length === 0) {
+      return res.status(403).json({ error: 'Access denied: You are not a member of this team' })
+    }
+
+    const isSelf = targetUserId === currentUserId
+    const isOwnerOrAdmin = ['owner', 'admin'].includes(membership.rows[0].role)
+
+    // Only owners/admins can remove other members; members can only remove themselves (leave team)
+    if (!isOwnerOrAdmin && !isSelf) {
+      return res.status(403).json({ error: 'Only team owners or admins can remove members' })
+    }
+
+    const targetMember = await db.query(
+      'SELECT role, user_id FROM team_members WHERE team_id = $1 AND user_id = $2',
+      [teamId, targetUserId]
+    )
+
+    if (targetMember.rows.length === 0) {
+      return res.status(404).json({ error: 'Member not found in this team' })
+    }
+
+    const teamRes = await db.query('SELECT created_by FROM teams WHERE id = $1', [teamId])
+    const isCreator = teamRes.rows.length > 0 && Number(teamRes.rows[0].created_by) === targetUserId
+
+    if (isCreator) {
+      return res.status(403).json({
+        error: isSelf
+          ? 'As the team creator, you cannot leave the team. You can delete the team instead.'
+          : 'The team creator cannot be removed from the team.',
+      })
+    }
+
+    await db.query(
+      'DELETE FROM team_members WHERE team_id = $1 AND user_id = $2',
+      [teamId, targetUserId]
+    )
+
+    await db.query(
+      'UPDATE tasks SET assigned_to = NULL WHERE team_id = $1 AND assigned_to = $2',
+      [teamId, targetUserId]
+    )
+
+    return res.json({
+      message: isSelf ? 'You have left the team' : 'Member removed from team successfully',
+      memberId: targetUserId,
+      teamId: Number(teamId),
     })
   } catch (error) {
     next(error)
@@ -270,6 +351,48 @@ export const joinTeam = async (req, res, next) => {
       message: 'Successfully joined team!',
       teamId: Number(teamId),
     })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getMyInvitations = async (req, res, next) => {
+  try {
+    const userEmail = req.user.email.toLowerCase().trim()
+
+    const result = await db.query(
+      `SELECT ti.id, ti.team_id, ti.email, ti.token, ti.created_at, ti.expires_at,
+              t.name as team_name, t.description as team_description,
+              u.name as inviter_name
+       FROM team_invitations ti
+       JOIN teams t ON ti.team_id = t.id
+       LEFT JOIN users u ON t.created_by = u.id
+       WHERE LOWER(ti.email) = $1
+         AND ti.status = 'pending'
+         AND ti.expires_at > CURRENT_TIMESTAMP
+       ORDER BY ti.created_at DESC`,
+      [userEmail]
+    )
+
+    return res.json({ invitations: result.rows })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const declineInvitation = async (req, res, next) => {
+  try {
+    const invitationId = req.params.id
+    const userEmail = req.user.email.toLowerCase().trim()
+
+    await db.query(
+      `UPDATE team_invitations
+       SET status = 'declined'
+       WHERE id = $1 AND LOWER(email) = $2 AND status = 'pending'`,
+      [invitationId, userEmail]
+    )
+
+    return res.json({ message: 'Invitation declined' })
   } catch (error) {
     next(error)
   }

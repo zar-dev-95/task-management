@@ -174,10 +174,11 @@ export const updateTask = async (req, res, next) => {
     const { title, description, status, priority, due_date, assigned_to } = req.body
 
     const existingResult = await db.query(
-      `SELECT t.*
+      `SELECT t.*, tm.role AS user_role, teams.created_by AS team_creator_id
        FROM tasks t
-       JOIN team_members tm ON t.team_id = tm.team_id
-       WHERE t.id = $1 AND tm.user_id = $2`,
+       JOIN team_members tm ON t.team_id = tm.team_id AND tm.user_id = $2
+       JOIN teams ON t.team_id = teams.id
+       WHERE t.id = $1`,
       [taskId, userId]
     )
 
@@ -186,6 +187,16 @@ export const updateTask = async (req, res, next) => {
     }
 
     const currentTask = existingResult.rows[0]
+    const isCreator = Number(currentTask.created_by) === Number(userId)
+    const isAssignee = Number(currentTask.assigned_to) === Number(userId)
+    const isTeamOwner = Number(currentTask.team_creator_id) === Number(userId) || ['owner', 'admin'].includes(currentTask.user_role)
+
+    // Only related members (assignee, creator, or team owner/admin) can update/change status of the task
+    if (!isCreator && !isAssignee && !isTeamOwner) {
+      return res.status(403).json({
+        error: 'Forbidden: Only related members (the assigned member, task creator, or team owner) can change or edit this task.',
+      })
+    }
 
     if (assigned_to !== undefined && assigned_to !== null) {
       const assigneeMembership = await db.query(
@@ -249,19 +260,27 @@ export const deleteTask = async (req, res, next) => {
     const userId = req.user.id
 
     const taskResult = await db.query(
-      'SELECT id, created_by, title FROM tasks WHERE id = $1',
-      [taskId]
+      `SELECT t.id, t.created_by, t.title, t.team_id, tm.role AS user_role, teams.created_by AS team_creator_id
+       FROM tasks t
+       JOIN team_members tm ON t.team_id = tm.team_id AND tm.user_id = $2
+       JOIN teams ON t.team_id = teams.id
+       WHERE t.id = $1`,
+      [taskId, userId]
     )
 
     if (taskResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Task not found' })
+      return res.status(404).json({ error: 'Task not found or access denied' })
     }
 
     const task = taskResult.rows[0]
+    const isCreator = Number(task.created_by) === Number(userId)
+    const isTeamOwner = Number(task.team_creator_id) === Number(userId) || ['owner', 'admin'].includes(task.user_role)
 
-    // Rule: ONLY the Task Creator can delete the task
-    if (task.created_by !== userId) {
-      return res.status(403).json({ error: 'Forbidden: Only the task creator can delete this task' })
+    // Rule: ONLY the Task Creator or Team Owner/Admin can delete the task
+    if (!isCreator && !isTeamOwner) {
+      return res.status(403).json({
+        error: 'Forbidden: Only the task creator or team owner can delete this task.',
+      })
     }
 
     await db.query('DELETE FROM tasks WHERE id = $1', [taskId])
