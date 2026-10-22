@@ -18,6 +18,18 @@ export default function DashboardPage() {
   const [taskToEdit, setTaskToEdit] = useState(null)
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false)
   const [isInviteOpen, setIsInviteOpen] = useState(false)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [isDueAlertOpen, setIsDueAlertOpen] = useState(true)
+  const [isDueAlertExpanded, setIsDueAlertExpanded] = useState(false)
+
+  const handleToggleDueAlert = () => {
+    if (!isDueAlertOpen) {
+      setIsDueAlertOpen(true)
+      setIsDueAlertExpanded(true)
+    } else {
+      setIsDueAlertExpanded((prev) => !prev)
+    }
+  }
 
   // Initial load: fetch user teams, due reminders, and pending team invitations
   useEffect(() => {
@@ -60,12 +72,23 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col antialiased">
-      <Navbar />
+      <Navbar
+        onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
+        onToggleDueAlert={handleToggleDueAlert}
+        isDueAlertOpen={isDueAlertOpen}
+      />
       <InvitationBanner />
-      <DueAlertBanner />
+      <DueAlertBanner
+        isOpen={isDueAlertOpen}
+        onClose={() => setIsDueAlertOpen(false)}
+        isExpanded={isDueAlertExpanded}
+        onToggleExpand={() => setIsDueAlertExpanded((prev) => !prev)}
+      />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         <TeamSidebar
+          isOpen={isMobileSidebarOpen}
+          onClose={() => setIsMobileSidebarOpen(false)}
           onOpenCreateTeam={() => setIsCreateTeamOpen(true)}
           onOpenInvite={() => setIsInviteOpen(true)}
         />
@@ -74,6 +97,7 @@ export default function DashboardPage() {
           onOpenCreateTask={handleOpenCreateTask}
           onOpenEditTask={handleOpenEditTask}
           onOpenInvite={() => setIsInviteOpen(true)}
+          onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
         />
       </div>
 

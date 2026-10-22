@@ -16,11 +16,12 @@ import { useTaskStore } from '../store/useTaskStore.js'
 import { useTeamStore } from '../store/useTeamStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 
-export default function TaskBoard({ onOpenCreateTask, onOpenEditTask, onOpenInvite }) {
+export default function TaskBoard({ onOpenCreateTask, onOpenEditTask, onOpenInvite, onOpenMobileSidebar }) {
   const { user } = useAuthStore()
   const { selectedTeam, members, userRole } = useTeamStore()
   const { tasks, loading, filters, setFilter, resetFilters, updateTask, deleteTask } = useTaskStore()
   const [deletingId, setDeletingId] = useState(null)
+  const [activeMobileTab, setActiveMobileTab] = useState('todo')
 
   const handleStatusChange = async (taskId, newStatus) => {
     try {
@@ -62,23 +63,31 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask, onOpenInvi
   ]
 
   return (
-    <main className="flex-1 flex flex-col h-[calc(100vh-4.25rem)] overflow-hidden bg-white">
+    <main className="flex-1 flex flex-col h-[calc(100vh-4rem)] md:h-[calc(100vh-4.25rem)] overflow-hidden bg-white">
       {/* Team Top Header */}
-      <div className="px-8 py-5 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">
+      <div className="px-4 py-3 sm:px-8 sm:py-5 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0 bg-white">
+        <div className="w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 truncate">
               {selectedTeam ? selectedTeam.name : 'Select or Create a Team'}
             </h1>
             {selectedTeam && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-600 font-medium">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-[11px] sm:text-xs px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-600 font-medium">
                   {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
                 </span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 font-medium">
+                <span className="text-[11px] sm:text-xs px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 font-medium">
                   {members.length} {members.length === 1 ? 'member' : 'members'}
                 </span>
               </div>
+            )}
+            {onOpenMobileSidebar && (
+              <button
+                onClick={onOpenMobileSidebar}
+                className="md:hidden text-[11px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+              >
+                Teams & Members
+              </button>
             )}
           </div>
           <p className="text-xs text-slate-500 mt-1 max-w-xl truncate">
@@ -87,10 +96,10 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask, onOpenInvi
         </div>
 
         {selectedTeam && (
-          <div className="flex flex-col items-end gap-2 shrink-0">
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
             <button
               onClick={onOpenCreateTask}
-              className="flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm shadow-blue-500/25 transition-colors cursor-pointer min-w-[125px]"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs shadow-blue-500/25 transition-colors cursor-pointer sm:min-w-[115px]"
             >
               <Plus className="w-4 h-4" />
               <span>New Task</span>
@@ -98,7 +107,7 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask, onOpenInvi
 
             <button
               onClick={onOpenInvite}
-              className="flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm shadow-blue-500/25 transition-colors cursor-pointer min-w-[125px]"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs shadow-blue-500/25 transition-colors cursor-pointer sm:min-w-[115px]"
             >
               <UserPlus className="w-4 h-4" />
               <span>Add Member</span>
@@ -109,10 +118,10 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask, onOpenInvi
 
       {/* Filter & Search Toolbar */}
       {selectedTeam && (
-        <div className="px-8 py-3 border-b border-slate-100 flex items-center justify-between gap-4 bg-slate-50/50 shrink-0">
-          <div className="flex items-center gap-3 flex-1 max-w-3xl">
+        <div className="px-4 py-2.5 sm:px-8 sm:py-3 border-b border-slate-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 bg-slate-50/50 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 flex-1 max-w-4xl">
             {/* Search Input */}
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-[180px]">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
               <input
                 type="text"
@@ -123,60 +132,61 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask, onOpenInvi
               />
             </div>
 
-            {/* Assignee Filter */}
-            <select
-              value={filters.assignedTo}
-              onChange={(e) => setFilter('assignedTo', e.target.value)}
-              className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:border-slate-900 transition-colors cursor-pointer shrink-0"
-            >
-              <option value="">All Assignees</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Status Filter */}
-            <select
-              value={filters.status}
-              onChange={(e) => setFilter('status', e.target.value)}
-              className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:border-slate-900 transition-colors cursor-pointer shrink-0"
-            >
-              <option value="">All Statuses</option>
-              <option value="todo">To Do</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-            </select>
-
-            {/* Priority Filter */}
-            <select
-              value={filters.priority}
-              onChange={(e) => setFilter('priority', e.target.value)}
-              className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:border-slate-900 transition-colors cursor-pointer shrink-0"
-            >
-              <option value="">All Priorities</option>
-              <option value="high">High Priority</option>
-              <option value="medium">Medium Priority</option>
-              <option value="low">Low Priority</option>
-            </select>
-
-            {/* Reset Filters */}
-            {isFiltered && (
-              <button
-                onClick={resetFilters}
-                className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 px-2 py-1.5 rounded hover:bg-slate-200/60 transition-colors cursor-pointer shrink-0"
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
+              {/* Assignee Filter */}
+              <select
+                value={filters.assignedTo}
+                onChange={(e) => setFilter('assignedTo', e.target.value)}
+                className="h-9 px-2.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:border-slate-900 transition-colors cursor-pointer"
               >
-                <X className="w-3.5 h-3.5" />
-                <span>Clear</span>
-              </button>
-            )}
+                <option value="">All Assignees</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Status Filter */}
+              <select
+                value={filters.status}
+                onChange={(e) => setFilter('status', e.target.value)}
+                className="h-9 px-2.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:border-slate-900 transition-colors cursor-pointer"
+              >
+                <option value="">All Statuses</option>
+                <option value="todo">To Do</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+
+              {/* Priority Filter */}
+              <select
+                value={filters.priority}
+                onChange={(e) => setFilter('priority', e.target.value)}
+                className="h-9 px-2.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:border-slate-900 transition-colors cursor-pointer col-span-2 sm:col-span-1"
+              >
+                <option value="">All Priorities</option>
+                <option value="high">High Priority</option>
+                <option value="medium">Medium Priority</option>
+                <option value="low">Low Priority</option>
+              </select>
+
+              {/* Reset Filters */}
+              {isFiltered && (
+                <button
+                  onClick={resetFilters}
+                  className="flex items-center justify-center gap-1 text-xs text-slate-600 hover:text-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 transition-colors cursor-pointer col-span-2 sm:col-span-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Clear</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
-
       {/* Task Content Board */}
-      <div className="flex-1 overflow-x-auto p-6 min-h-0 bg-slate-50/40">
+      <div className="flex-1 overflow-x-auto p-3.5 sm:p-6 min-h-0 bg-slate-50/40 flex flex-col">
         {!selectedTeam ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
@@ -217,76 +227,106 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask, onOpenInvi
             )}
           </div>
         ) : (
-          /* Kanban 3-Column Grid */
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full min-h-0">
-            {columns.map((col) => {
-              // High priority tasks remain on top (high: 1, medium: 2, low: 3)
-              const PRIORITY_ORDER = { high: 1, medium: 2, low: 3 }
-              const columnTasks = tasks
-                .filter((t) => t.status === col.key)
-                .sort((a, b) => {
-                  const pA = PRIORITY_ORDER[a.priority?.toLowerCase()] || 2
-                  const pB = PRIORITY_ORDER[b.priority?.toLowerCase()] || 2
-                  if (pA !== pB) return pA - pB
-                  return new Date(a.due_date || '9999-12-31') - new Date(b.due_date || '9999-12-31')
-                })
-              const Icon = col.icon
-
-              return (
-                <div
-                  key={col.key}
-                  className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-4 flex flex-col h-full min-h-0 shadow-sm"
-                >
-                  {/* Column Header */}
-                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/70 shrink-0">
-                    <div className="flex items-center gap-2">
-                      <Icon className={`w-4 h-4 ${col.color}`} />
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
-                        {col.label}
-                      </h3>
-                    </div>
-                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold ${col.countBg}`}>
-                      {columnTasks.length}
+          <>
+            {/* Mobile Segmented Column Tabs */}
+            <div className="md:hidden flex items-center p-1 bg-slate-200/70 rounded-xl mb-3 shrink-0 gap-1">
+              {columns.map((col) => {
+                const count = tasks.filter((t) => t.status === col.key).length
+                const isActive = activeMobileTab === col.key
+                return (
+                  <button
+                    key={col.key}
+                    type="button"
+                    onClick={() => setActiveMobileTab(col.key)}
+                    className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-white text-slate-900 shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <span>{col.label}</span>
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                      isActive ? col.countBg : 'bg-slate-300/60 text-slate-700'
+                    }`}>
+                      {count}
                     </span>
-                  </div>
+                  </button>
+                )
+              })}
+            </div>
 
-                  {/* Column Tasks (Independently scrollable with sleek scrollbar) */}
-                  <div className="flex-1 overflow-y-auto pr-1.5 space-y-3 min-h-0 custom-scrollbar">
-                    {columnTasks.length === 0 ? (
-                      <div className="py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg">
-                        No {col.label.toLowerCase()} tasks
+            {/* Kanban 3-Column Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 h-full min-h-0 flex-1">
+              {columns.map((col) => {
+                // High priority tasks remain on top (high: 1, medium: 2, low: 3)
+                const PRIORITY_ORDER = { high: 1, medium: 2, low: 3 }
+                const columnTasks = tasks
+                  .filter((t) => t.status === col.key)
+                  .sort((a, b) => {
+                    const pA = PRIORITY_ORDER[a.priority?.toLowerCase()] || 2
+                    const pB = PRIORITY_ORDER[b.priority?.toLowerCase()] || 2
+                    if (pA !== pB) return pA - pB
+                    return new Date(a.due_date || '9999-12-31') - new Date(b.due_date || '9999-12-31')
+                  })
+                const Icon = col.icon
+
+                return (
+                  <div
+                    key={col.key}
+                    className={`bg-slate-50/80 border border-slate-200/80 rounded-xl p-3 sm:p-4 flex flex-col h-full min-h-0 shadow-2xs ${
+                      activeMobileTab === col.key ? 'flex' : 'hidden md:flex'
+                    }`}
+                  >
+                    {/* Column Header */}
+                    <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/70 shrink-0">
+                      <div className="flex items-center gap-2">
+                        <Icon className={`w-4 h-4 ${col.color}`} />
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                          {col.label}
+                        </h3>
                       </div>
-                    ) : (
-                      columnTasks.map((task) => {
-                        const isCreator = Number(task.created_by) === Number(user?.id)
-                        const isAssignee = Number(task.assigned_to) === Number(user?.id)
-                        const isTeamOwner = Number(selectedTeam?.created_by) === Number(user?.id) || ['owner', 'admin'].includes(userRole)
-                        const canModify = isCreator || isAssignee || isTeamOwner
-                        const canDelete = isCreator || isTeamOwner
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold ${col.countBg}`}>
+                        {columnTasks.length}
+                      </span>
+                    </div>
 
-                        // Priority chip styling
-                        const priorityBadges = {
-                          high: 'bg-rose-50 text-rose-700 border-rose-200',
-                          medium: 'bg-amber-50 text-amber-700 border-amber-200',
-                          low: 'bg-slate-100 text-slate-600 border-slate-200',
-                        }
+                    {/* Column Tasks (Independently scrollable with sleek scrollbar) */}
+                    <div className="flex-1 overflow-y-auto pr-1.5 space-y-3 min-h-0 custom-scrollbar">
+                      {columnTasks.length === 0 ? (
+                        <div className="py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg">
+                          No {col.label.toLowerCase()} tasks
+                        </div>
+                      ) : (
+                        columnTasks.map((task) => {
+                          const isCreator = Number(task.created_by) === Number(user?.id)
+                          const isAssignee = Number(task.assigned_to) === Number(user?.id)
+                          const isTeamOwner = Number(selectedTeam?.created_by) === Number(user?.id) || ['owner', 'admin'].includes(userRole)
+                          const canModify = isCreator || isAssignee || isTeamOwner
+                          const canDelete = isCreator || isTeamOwner
 
-                        return (
-                          <div
-                            key={task.id}
-                            className="bg-white border border-slate-200 rounded-lg p-3.5 shadow-sm hover:border-slate-300 transition-all space-y-2.5 group"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <span
-                                className={`text-[10px] font-mono px-1.5 py-0.5 rounded border uppercase tracking-wider font-semibold ${
-                                  priorityBadges[task.priority] || priorityBadges.medium
-                                }`}
-                              >
-                                {task.priority}
-                              </span>
+                          // Priority chip styling
+                          const priorityBadges = {
+                            high: 'bg-rose-50 text-rose-700 border-rose-200',
+                            medium: 'bg-amber-50 text-amber-700 border-amber-200',
+                            low: 'bg-slate-100 text-slate-600 border-slate-200',
+                          }
 
-                              {/* Task Action Buttons - Only related members */}
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          return (
+                            <div
+                              key={task.id}
+                              className="bg-white border border-slate-200 rounded-lg p-3 sm:p-3.5 shadow-2xs hover:border-slate-300 transition-all space-y-2.5 group"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <span
+                                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded border uppercase tracking-wider font-semibold ${
+                                    priorityBadges[task.priority] || priorityBadges.medium
+                                  }`}
+                                >
+                                  {task.priority}
+                                </span>
+
+                                {/* Task Action Buttons - Always visible on mobile, hover on desktop */}
+                                <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                 {canModify && (
                                   <button
                                     onClick={() => onOpenEditTask(task)}
@@ -385,6 +425,7 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask, onOpenInvi
               )
             })}
           </div>
+          </>
         )}
       </div>
     </main>

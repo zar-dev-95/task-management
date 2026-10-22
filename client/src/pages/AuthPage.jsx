@@ -51,19 +51,19 @@ export default function AuthPage() {
   const displayError = localError || error
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter', system-ui, sans-serif", background: BEIGE }}>
+    <div
+      className="flex flex-col md:flex-row min-h-screen w-full"
+      style={{ fontFamily: "'Inter', system-ui, sans-serif", background: BEIGE }}
+    >
 
-      {/* ─── LEFT PANEL (50%) ─── */}
-      <div style={{
-        flex: 1,
-        background: DARK,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        padding: '64px 72px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
+      {/* ─── LEFT PANEL (Hidden on mobile, 50% on desktop) ─── */}
+      <div
+        className="hidden md:flex md:w-1/2 flex-col justify-center relative overflow-hidden"
+        style={{
+          background: DARK,
+          padding: '64px 72px',
+        }}
+      >
 
         {/* Background glow circles */}
         <div style={{
@@ -155,29 +155,57 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* ─── RIGHT PANEL (50%) ─── */}
-      <div style={{
-        flex: 1,
-        background: BEIGE,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '40px 24px',
-        borderLeft: `1px solid ${BEIGE_BORDER}`,
-      }}>
+      {/* ─── RIGHT PANEL (100% on mobile, 50% on desktop) ─── */}
+      <div
+        className="flex-1 flex flex-col justify-center items-center w-full px-4 py-8 sm:px-8 md:border-l md:border-[#ddd5c4]"
+        style={{
+          background: BEIGE,
+        }}
+      >
+
+        {/* Mobile-only TaskDesk Branding */}
+        <div className="flex md:hidden items-center gap-2.5 mb-6">
+          <img
+            src="/favicon.svg"
+            alt="TaskDesk Logo"
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '9px',
+              boxShadow: '0 3px 12px rgba(37, 99, 235, 0.28)',
+              display: 'block',
+            }}
+          />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#2563eb', fontWeight: '800', fontSize: '22px', letterSpacing: '-0.03em' }}>
+              TaskDesk
+            </span>
+            <span style={{
+              fontSize: '10px',
+              fontWeight: '700',
+              color: '#2563eb',
+              background: 'rgba(59, 130, 246, 0.1)',
+              border: '1px solid rgba(59, 130, 246, 0.25)',
+              borderRadius: '5px',
+              padding: '2px 6px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em'
+            }}>
+              Workspace
+            </span>
+          </div>
+        </div>
 
         {/* ── Elevated Auth Card Box ── */}
-        <div style={{
-          width: '100%',
-          maxWidth: '430px',
-          background: '#ffffff',
-          borderRadius: '20px',
-          padding: '38px 36px',
-          border: '1.5px solid #ded5c4',
-          boxShadow: '0 24px 50px -12px rgba(28, 25, 23, 0.12), 0 8px 24px -4px rgba(59, 130, 246, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8) inset',
-          position: 'relative',
-        }}>
+        <div
+          className="w-full max-w-[430px] rounded-2xl relative"
+          style={{
+            background: '#ffffff',
+            padding: 'clamp(24px, 5vw, 38px) clamp(20px, 5vw, 36px)',
+            border: '1.5px solid #ded5c4',
+            boxShadow: '0 24px 50px -12px rgba(28, 25, 23, 0.12), 0 8px 24px -4px rgba(59, 130, 246, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8) inset',
+          }}
+        >
 
           {/* Top highlight glow line */}
           <div style={{
@@ -193,7 +221,7 @@ export default function AuthPage() {
           {/* Heading */}
           <div style={{ marginBottom: '28px' }}>
             <h2 style={{
-              fontSize: '25px', fontWeight: '800', color: DARK,
+              fontSize: 'clamp(21px, 4vw, 25px)', fontWeight: '800', color: DARK,
               letterSpacing: '-0.03em', margin: '0 0 8px 0',
             }}>
               {isRegister ? 'Create your account' : 'Welcome back'}
@@ -204,6 +232,7 @@ export default function AuthPage() {
                 : 'Sign in to your workspace and pick up where you left off.'}
             </p>
           </div>
+
 
           {/* Mode Switcher */}
           <div style={{

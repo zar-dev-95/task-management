@@ -4,7 +4,12 @@ import { useTeamStore } from '../store/useTeamStore.js'
 import { useTaskStore } from '../store/useTaskStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 
-export default function TeamSidebar({ onOpenCreateTeam, onOpenInvite }) {
+export default function TeamSidebar({
+  onOpenCreateTeam,
+  onOpenInvite,
+  isOpen = false,
+  onClose = () => {},
+}) {
   const { user } = useAuthStore()
   const { teams, selectedTeam, members, userRole, selectTeam, deleteTeam, removeMember, fetchTeams } = useTeamStore()
   const [deleting, setDeleting] = useState(false)
@@ -58,46 +63,79 @@ export default function TeamSidebar({ onOpenCreateTeam, onOpenInvite }) {
   }
 
   return (
-    <aside className="w-72 border-r border-slate-200 bg-white flex flex-col shrink-0 h-[calc(100vh-4.25rem)] select-none">
-      {/* ── Section 1: Teams List (Fully Scrollable) ── */}
-      <div className="flex flex-col max-h-[46%] border-b border-slate-200 shrink-0 min-h-0">
-        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 shrink-0">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-blue-600" />
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              Your Teams
-            </h2>
-          </div>
-          <button
-            onClick={onOpenCreateTeam}
-            title="Create new team"
-            className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 px-2 py-1 rounded border border-blue-200 hover:bg-blue-50 transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>New</span>
-          </button>
-        </div>
+    <>
+      {/* ── Mobile Backdrop Overlay ── */}
+      {isOpen && (
+        <div
+          onClick={onClose}
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 md:hidden transition-opacity"
+          aria-hidden="true"
+        />
+      )}
 
-        {/* Teams List (Scrollable) */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar min-h-0">
-          {teams.length === 0 ? (
-            <div className="p-4 text-center">
-              <p className="text-xs text-slate-400">No teams yet</p>
+      {/* ── Sidebar (Static on desktop, Drawer on mobile) ── */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-80 bg-white shadow-2xl md:shadow-none flex flex-col h-full md:static md:w-72 md:h-[calc(100vh-4.25rem)] md:border-r md:border-slate-200 transition-transform duration-200 ease-in-out select-none shrink-0 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
+      >
+        {/* ── Section 1: Teams List (Fully Scrollable) ── */}
+        <div className="flex flex-col max-h-[46%] border-b border-slate-200 shrink-0 min-h-0">
+          <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 shrink-0">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-blue-600" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                Your Teams
+              </h2>
+            </div>
+            <div className="flex items-center gap-1.5">
               <button
-                onClick={onOpenCreateTeam}
-                className="mt-2 text-xs font-medium text-blue-600 underline hover:text-blue-700 cursor-pointer"
+                onClick={() => {
+                  onOpenCreateTeam()
+                  onClose()
+                }}
+                title="Create new team"
+                className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 px-2 py-1 rounded border border-blue-200 hover:bg-blue-50 transition-colors cursor-pointer"
               >
-                Create your first team
+                <Plus className="w-3.5 h-3.5" />
+                <span>New</span>
+              </button>
+              <button
+                onClick={onClose}
+                className="md:hidden p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                title="Close sidebar"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
-          ) : (
-            teams.map((team) => {
-              const isSelected = selectedTeam?.id === team.id
-              const isTeamOwner = Number(team.created_by) === Number(user?.id) || team.role === 'owner'
-              return (
+          </div>
+
+          {/* Teams List (Scrollable) */}
+          <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar min-h-0">
+            {teams.length === 0 ? (
+              <div className="p-4 text-center">
+                <p className="text-xs text-slate-400">No teams yet</p>
                 <button
-                  key={team.id}
-                  onClick={() => selectTeam(team.id)}
+                  onClick={() => {
+                    onOpenCreateTeam()
+                    onClose()
+                  }}
+                  className="mt-2 text-xs font-medium text-blue-600 underline hover:text-blue-700 cursor-pointer"
+                >
+                  Create your first team
+                </button>
+              </div>
+            ) : (
+              teams.map((team) => {
+                const isSelected = selectedTeam?.id === team.id
+                const isTeamOwner = Number(team.created_by) === Number(user?.id) || team.role === 'owner'
+                return (
+                  <button
+                    key={team.id}
+                    onClick={() => {
+                      selectTeam(team.id)
+                      onClose()
+                    }}
                   className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors flex items-center justify-between cursor-pointer ${
                     isSelected
                       ? 'bg-blue-50 font-semibold text-blue-900 border border-blue-200 shadow-2xs'
@@ -144,7 +182,10 @@ export default function TeamSidebar({ onOpenCreateTeam, onOpenInvite }) {
             </div>
 
             <button
-              onClick={onOpenInvite}
+              onClick={() => {
+                onOpenInvite()
+                onClose()
+              }}
               title="Add member"
               className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md border border-blue-200 transition-colors cursor-pointer"
             >
@@ -243,5 +284,6 @@ export default function TeamSidebar({ onOpenCreateTeam, onOpenInvite }) {
         </div>
       )}
     </aside>
+    </>
   )
 }

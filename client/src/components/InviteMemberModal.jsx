@@ -61,14 +61,14 @@ export default function InviteMemberModal({ isOpen, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px]">
-      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-[2px]">
+      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-md shadow-xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
+        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
           <div>
             <h3 className="text-base font-semibold text-slate-900">
               Team Members
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5 truncate max-w-[240px] sm:max-w-xs">
               Team: <span className="font-medium text-slate-800">{selectedTeam?.name}</span>
             </p>
           </div>
@@ -81,7 +81,7 @@ export default function InviteMemberModal({ isOpen, onClose }) {
         </div>
 
         {/* Tab Switcher */}
-        <div className="px-6 pt-3 flex gap-4 border-b border-slate-100">
+        <div className="px-4 pt-2.5 sm:px-6 sm:pt-3 flex gap-4 border-b border-slate-100 shrink-0">
           <button
             onClick={() => { setTab('add'); setError(null); setSuccess(null); }}
             className={`pb-2.5 text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer border-b-2 ${
@@ -104,7 +104,7 @@ export default function InviteMemberModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar">
           {error && (
             <div className="mb-4 p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs">
               {error}
