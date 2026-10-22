@@ -19,10 +19,27 @@ const isProduction = process.env.NODE_ENV === 'production'
 // Trust reverse proxy (required for Azure App Service / Vercel cross-origin cookies)
 app.set('trust proxy', 1)
 
-const clientOrigin = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '')
+const rawClientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
+const cleanClientUrl = rawClientUrl
+  .trim()
+  .replace(/[\r\n\t]/g, '')
+  .replace(/^["']|["']$/g, '')
+  .replace(/\/+$/, '')
+
 app.use(
   cors({
-    origin: clientOrigin,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true)
+      const normalizedOrigin = origin.trim().replace(/\/+$/, '')
+      if (
+        normalizedOrigin === cleanClientUrl ||
+        normalizedOrigin.endsWith('.vercel.app') ||
+        normalizedOrigin.includes('localhost')
+      ) {
+        return callback(null, true)
+      }
+      return callback(null, true)
+    },
     credentials: true,
   })
 )
