@@ -4,13 +4,13 @@ TaskDesk is a full-stack, real-time team task management platform built with **R
 
 ---
 
-## 🚀 Quick Start & Setup Instructions
+## Quick Start & Setup Instructions
 
-Follow these quick steps to run the application locally on your machine.
+Follow these steps to run the application locally on your machine.
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v18 or higher)
-- [PostgreSQL](https://www.postgresql.org/) database (local instance or cloud database like Neon / Google Cloud SQL)
+- [PostgreSQL](https://www.postgresql.org/) database (local instance or cloud database like Neon / Azure PostgreSQL)
 
 ---
 
@@ -57,13 +57,13 @@ Follow these quick steps to run the application locally on your machine.
    ```bash
    npm run dev
    ```
-   > Frontend will be live at `http://localhost:5173`. Open this URL in your browser to start using TaskDesk!
+   > Frontend will be live at `http://localhost:5173`. Open this URL in your browser to start using TaskDesk.
 
 ---
 
-### 🔑 Test Credentials (Ready for Testing)
+### Test Credentials (Ready for Testing)
 
-All seeded test accounts share the same simple password:
+All seeded test accounts share the same password:
 
 | Email | Password | Role / Purpose |
 | :--- | :---: | :--- |
@@ -77,11 +77,11 @@ All seeded test accounts share the same simple password:
 
 ---
 
-## 🌟 Key Features & Architecture
+## Key Features & Architecture
 
 ### 1. Secure Authentication & Session Management
 - **Passport.js (Local Strategy)** with `express-session`.
-- Session persistence in **PostgreSQL** (`connect-pg-simple`) with resilient fallback.
+- Session persistence: **PostgreSQL** (`connect-pg-simple`) in production, with in-memory fallback in local development.
 - **Bcrypt password hashing** with 10 salt rounds.
 - **HTTP-only cookies** configured with CSRF-safe settings.
 - Protected API routes guarded via `isAuthenticated` middleware.
@@ -99,18 +99,18 @@ All seeded test accounts share the same simple password:
 - Search tasks in real-time by title or description.
 - Filter tasks by **Assignee**, **Status**, and **Priority**.
 - **Related Members Permissions**:
-  - **Status Change**: Only related members (**Assignee**, **Task Creator**, or **Team Owner**) can change task status. Non-related members see a read-only lock badge (`Status: In Progress 🔒`).
+  - **Status Change**: Only related members (**Assignee**, **Task Creator**, or **Team Owner**) can change task status. Non-related members see a read-only lock badge (`Status: In Progress [Locked]`).
   - **Edit Task**: Only related members can edit task details.
   - **Delete Task**: Only the **Task Creator** or **Team Owner** can delete tasks.
 
 ### 4. Assessment Bonus Features (100% Implemented)
-- 🔔 **Task Due Date Reminders**: Real-time alert banner warning users of tasks due within 48 hours.
-- 🛡️ **Role-Based Access Control (RBAC)**: Fine-grained permissions enforced across both API controllers and React UI.
-- ✉️ **Email Invitation Flow**: Generates unique invite tokens and links (`/join?token=...&teamId=...`) with a pending invitations banner on the dashboard for users to accept or decline.
+- **Task Due Date Reminders**: Real-time alert banner warning users of tasks due within 48 hours.
+- **Role-Based Access Control (RBAC)**: Fine-grained permissions enforced across both API controllers and React UI.
+- **Email Invitation Flow**: Generates unique invite tokens and links (`/join?token=...&teamId=...`) with a pending invitations banner on the dashboard for users to accept or decline.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── client/
@@ -160,7 +160,7 @@ All seeded test accounts share the same simple password:
 
 ---
 
-## 🧪 Postman API Collection
+## Postman API Collection
 A complete Postman collection is available at `server/postman_collection.json` covering all REST endpoints:
 - **Authentication**: `/api/auth/register`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`
 - **Teams**: `/api/teams` (CRUD, members, invitations, join, decline)

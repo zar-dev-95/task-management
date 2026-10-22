@@ -30,19 +30,25 @@ app.use(
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-const PgSession = connectPgSimple(session)
-const sessionStore = process.env.DATABASE_URL
-  ? new PgSession({
-      pool,
-      tableName: 'session',
-      createTableIfMissing: true,
-    })
-  : undefined
+// Session Store Configuration
+// Requirement: "Store session in PostgreSQL, fallback to memory in dev"
+const usePgSession = isProduction || process.env.USE_PG_SESSION === 'true'
+let sessionStore = undefined
 
-if (sessionStore) {
+if (usePgSession && process.env.DATABASE_URL) {
+  const PgSession = connectPgSimple(session)
+  sessionStore = new PgSession({
+    pool,
+    tableName: 'session',
+    createTableIfMissing: true,
+  })
   sessionStore.on('error', (err) => {
     console.error('PostgreSQL Session Store Error:', err.message)
   })
+  console.log('[Session Store] PostgreSQL (connect-pg-simple active)')
+} else {
+  // Built-in MemoryStore fallback for local development
+  console.log('[Session Store] In-Memory fallback active (Local Development)')
 }
 
 app.use(
@@ -67,7 +73,8 @@ app.use(passport.session())
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    message: 'Server is running successfully',
+    environment: process.env.NODE_ENV || 'development',
+    sessionStore: sessionStore ? 'postgresql' : 'in-memory (fallback)',
     authenticated: req.isAuthenticated ? req.isAuthenticated() : false,
   })
 })

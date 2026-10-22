@@ -372,7 +372,7 @@ export default function TaskBoard({ onOpenCreateTask, onOpenEditTask, onOpenInvi
                                   <span className="capitalize">
                                     Status: {task.status.replace('_', ' ')}
                                   </span>
-                                  <span className="text-[10px] text-slate-400 font-mono">🔒</span>
+                                  <span className="text-[10px] text-slate-400 font-mono">(Locked)</span>
                                 </div>
                               )}
                             </div>

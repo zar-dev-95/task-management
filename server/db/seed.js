@@ -69,7 +69,7 @@ export const seedDatabase = async () => {
     }
 
     console.log('\n======================================================')
-    console.log(`🎉 Seeding complete! Added/Updated ${insertedUsers.length} members.`)
+    console.log(`[Success] Seeding complete! Added/Updated ${insertedUsers.length} members.`)
     console.log(`   All accounts can log in with password: "${DEFAULT_PASSWORD}"`)
     console.log('======================================================\n')
     return insertedUsers
