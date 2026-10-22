@@ -14,9 +14,9 @@ dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 5000
-const isProduction = process.env.NODE_ENV === 'production'
+const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL)
 
-// Trust reverse proxy (required for Azure App Service / Vercel cross-origin cookies)
+// Trust reverse proxy (required for Vercel / Azure cross-origin HTTPS cookies)
 app.set('trust proxy', 1)
 
 const rawClientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
@@ -98,8 +98,9 @@ app.get('/', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    environment: process.env.NODE_ENV || 'development',
+    environment: isProduction ? 'production' : 'development',
     sessionStore: sessionStore ? 'postgresql' : 'in-memory (fallback)',
+    hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
     authenticated: req.isAuthenticated ? req.isAuthenticated() : false,
   })
 })
