@@ -84,15 +84,15 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px]">
-      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-[2px]">
+      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-lg shadow-xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
           <div>
             <h3 className="text-base font-semibold text-slate-900">
               {taskToEdit ? 'Edit Task' : 'Create Task'}
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5 truncate max-w-[260px] sm:max-w-md">
               In team: <span className="font-medium text-slate-800">{selectedTeam?.name}</span>
             </p>
           </div>
@@ -104,8 +104,8 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null }) {
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Form (scrollable on mobile) */}
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-3.5 sm:space-y-4 overflow-y-auto custom-scrollbar">
           {error && (
             <div className="p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs">
               {error}
@@ -139,7 +139,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null }) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
                 <span className="flex items-center gap-1.5">
@@ -177,7 +177,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
                 <span className="flex items-center gap-1.5">
@@ -215,7 +215,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null }) {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+          <div className="pt-3 sm:pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
@@ -226,7 +226,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null }) {
             <button
               type="submit"
               disabled={loading || !canModify}
-              className={`px-5 py-2 rounded-lg text-xs font-semibold shadow-sm transition-colors ${
+              className={`px-5 py-2 rounded-lg text-xs font-semibold shadow-xs transition-colors ${
                 !canModify
                   ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                   : 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer'

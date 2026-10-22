@@ -12,25 +12,25 @@ export default function DueAlertBanner() {
   }
 
   return (
-    <div className="bg-amber-50/70 border-b border-amber-200/80 px-6 py-2.5 text-xs text-amber-900 transition-all">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <div className="bg-amber-50/70 border-b border-amber-200/80 px-3.5 sm:px-6 py-2 sm:py-2.5 text-xs text-amber-900 transition-all">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2.5 sm:gap-4">
         <div className="flex items-center gap-2 font-medium">
           <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-          <span>
-            You have <strong className="font-semibold text-amber-950">{reminders.length}</strong> {reminders.length === 1 ? 'task' : 'tasks'} assigned to you due within 48 hours.
+          <span className="leading-snug">
+            You have <strong className="font-semibold text-amber-950">{reminders.length}</strong> {reminders.length === 1 ? 'task' : 'tasks'} due within 48h.
           </span>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-amber-700 underline hover:text-amber-950 ml-1 inline-flex items-center gap-0.5 cursor-pointer font-normal"
+            className="text-amber-700 underline hover:text-amber-950 ml-1 inline-flex items-center gap-0.5 cursor-pointer font-normal shrink-0"
           >
-            {expanded ? 'Hide list' : 'View list'}
+            {expanded ? 'Hide' : 'View'}
             {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
         </div>
 
         <button
           onClick={() => setDismissed(true)}
-          className="text-amber-600 hover:text-amber-900 p-1 rounded hover:bg-amber-100/50 cursor-pointer"
+          className="text-amber-600 hover:text-amber-900 p-1 rounded hover:bg-amber-100/50 cursor-pointer shrink-0"
           title="Dismiss banner"
         >
           <X className="w-3.5 h-3.5" />
@@ -38,7 +38,7 @@ export default function DueAlertBanner() {
       </div>
 
       {expanded && (
-        <div className="max-w-7xl mx-auto mt-2 pt-2 border-t border-amber-200/60 grid sm:grid-cols-2 md:grid-cols-3 gap-2">
+        <div className="max-w-7xl mx-auto mt-2 pt-2 border-t border-amber-200/60 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
           {reminders.map((task) => (
             <div
               key={task.id}

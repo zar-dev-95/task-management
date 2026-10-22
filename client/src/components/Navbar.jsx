@@ -1,8 +1,8 @@
-import { LogOut, Bell, CheckSquare } from './Icons.jsx'
+import { LogOut, Bell, CheckSquare, Menu } from './Icons.jsx'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useTaskStore } from '../store/useTaskStore.js'
 
-export default function Navbar() {
+export default function Navbar({ onToggleMobileSidebar }) {
   const { user, logout } = useAuthStore()
   const { reminders } = useTaskStore()
 
@@ -12,109 +12,77 @@ export default function Navbar() {
     : 'U'
 
   return (
-    <header style={{
-      height: '68px',
-      borderBottom: '1px solid #e2e8f0',
-      background: 'white',
-      padding: '0 28px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      position: 'sticky',
-      top: 0,
-      zIndex: 30,
-      fontFamily: "'Inter', system-ui, sans-serif",
-      boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.04)',
-    }}>
+    <header className="h-16 md:h-[68px] border-b border-slate-200 bg-white px-3.5 sm:px-6 md:px-7 flex items-center justify-between sticky top-0 z-30 shadow-xs select-none">
 
-      {/* ─── Left: Brand Logo & Word ─── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      {/* ─── Left: Mobile Menu Toggle + Brand Logo & Word ─── */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {onToggleMobileSidebar && (
+          <button
+            onClick={onToggleMobileSidebar}
+            className="md:hidden p-1.5 -ml-1 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+            title="Open teams & members"
+            aria-label="Toggle menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        )}
+
         {/* Browser Tab Logo */}
         <img
           src="/favicon.svg"
           alt="TaskDesk Logo"
-          style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '10px',
-            flexShrink: 0,
-            boxShadow: '0 3px 12px rgba(37, 99, 235, 0.28)',
-            display: 'block',
-          }}
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg shrink-0 shadow-sm shadow-blue-500/25 block"
         />
 
-        {/* Word: Much Bigger & Vibrant Blue */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{
-            fontWeight: '800',
-            color: '#2563eb',
-            fontSize: '24px',
-            letterSpacing: '-0.035em',
-            lineHeight: 1,
-          }}>
+        {/* Word: Bigger & Vibrant Blue */}
+        <div className="flex items-center gap-2">
+          <span className="font-extrabold text-blue-600 text-xl sm:text-2xl tracking-tight leading-none">
             TaskDesk
           </span>
-          <span style={{
-            fontSize: '11px',
-            fontWeight: '700',
-            color: '#2563eb',
-            background: 'rgba(59, 130, 246, 0.1)',
-            border: '1px solid rgba(59, 130, 246, 0.25)',
-            borderRadius: '6px',
-            padding: '3px 8px',
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
-          }}>
+          <span className="hidden sm:inline-flex text-[11px] font-bold text-blue-600 bg-blue-500/10 border border-blue-500/25 rounded-md px-2 py-0.5 tracking-wider uppercase">
             Workspace
           </span>
         </div>
       </div>
 
       {/* ─── Right: Actions ─── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div className="flex items-center gap-2.5 sm:gap-3.5">
 
         {/* Due soon pill */}
         {urgentCount > 0 && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '6px 14px', borderRadius: '20px',
-            background: '#fffbeb', border: '1px solid #fde68a',
-            color: '#92400e', fontSize: '12px', fontWeight: '600',
-          }}>
-            <Bell className="w-3.5 h-3.5" style={{ color: '#d97706' }} />
-            <span>{urgentCount} due soon</span>
+          <div
+            title={`${urgentCount} task${urgentCount > 1 ? 's' : ''} due within 48 hours`}
+            className="flex items-center gap-1.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold"
+          >
+            <Bell className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span className="hidden xs:inline sm:inline">
+              {urgentCount} due soon
+            </span>
+            <span className="inline xs:hidden sm:hidden font-bold">
+              {urgentCount}
+            </span>
           </div>
         )}
 
         {/* Divider */}
-        <div style={{ width: '1px', height: '24px', background: '#e2e8f0' }} />
+        <div className="w-[1px] h-6 bg-slate-200 hidden xs:block" />
 
         {/* User info + avatar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ textAlign: 'right' }}>
-            <p style={{
-              fontSize: '13.5px', fontWeight: '700', color: '#1e293b',
-              margin: 0, lineHeight: '1.3', letterSpacing: '-0.01em',
-            }}>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="text-right hidden md:block">
+            <p className="text-[13px] font-bold text-slate-800 m-0 leading-tight tracking-tight">
               {user?.name || 'User'}
             </p>
-            <p style={{
-              fontSize: '11.5px', color: '#64748b', margin: 0, lineHeight: '1.3',
-            }}>
+            <p className="text-[11px] text-slate-500 m-0 leading-tight truncate max-w-[150px]">
               {user?.email}
             </p>
           </div>
 
-          {/* Avatar circle (Blue instead of black) */}
-          <div style={{
-            width: '38px', height: '38px', borderRadius: '50%',
-            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-            color: 'white',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '13px', fontWeight: '700', flexShrink: 0,
-            letterSpacing: '0.02em',
-            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.28)',
-          }}>
+          {/* Avatar circle (Blue gradient) */}
+          <div
+            title={`${user?.name || 'User'} (${user?.email || ''})`}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center text-xs sm:text-[13px] font-bold shrink-0 tracking-wide shadow-sm shadow-blue-500/30"
+          >
             {initials}
           </div>
 
@@ -122,22 +90,7 @@ export default function Navbar() {
           <button
             onClick={logout}
             title="Log out"
-            style={{
-              width: '34px', height: '34px', borderRadius: '8px',
-              border: '1px solid #e2e8f0', background: 'white',
-              color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', transition: 'all 0.15s',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = '#fef2f2'
-              e.currentTarget.style.borderColor = '#fecaca'
-              e.currentTarget.style.color = '#dc2626'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'white'
-              e.currentTarget.style.borderColor = '#e2e8f0'
-              e.currentTarget.style.color = '#64748b'
-            }}
+            className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 flex items-center justify-center cursor-pointer transition-colors"
           >
             <LogOut className="w-4 h-4" />
           </button>
