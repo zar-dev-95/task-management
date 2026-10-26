@@ -86,6 +86,8 @@ if (usePgSession && process.env.DATABASE_URL) {
 } else {
   // Built-in MemoryStore fallback for local development
   console.log('[Session Store] In-Memory fallback active (Local Development)')
+}
+
 // Cross-origin session bridge:
 // Modern browsers (Chrome, Safari, iOS, Brave) block third-party cookies when frontend (Vercel)
 // and backend (Railway) reside on different domains. This middleware bridges the session ID from
