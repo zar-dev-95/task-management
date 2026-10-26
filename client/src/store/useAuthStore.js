@@ -1,7 +1,18 @@
 import { create } from './zustand.js'
 import { api } from '../api/apiClient.js'
+import { useTeamStore } from './useTeamStore.js'
+import { useTaskStore } from './useTaskStore.js'
 
 const hasSavedSession = typeof window !== 'undefined' && Boolean(localStorage.getItem('taskdesk_has_session'))
+
+const resetRelativeStores = () => {
+  try {
+    useTeamStore.getState().resetTeamStore()
+    useTaskStore.getState().resetTaskStore()
+  } catch (e) {
+    console.error('Error resetting relative stores:', e)
+  }
+}
 
 export const useAuthStore = create((set) => ({
   user: null,
@@ -15,6 +26,7 @@ export const useAuthStore = create((set) => ({
       set({ user: res.user, loading: false })
     } catch {
       localStorage.removeItem('taskdesk_has_session')
+      resetRelativeStores()
       set({ user: null, loading: false })
     }
   },
@@ -24,6 +36,7 @@ export const useAuthStore = create((set) => ({
       set({ loading: true, error: null })
       const res = await api.post('/auth/login', { email, password })
       localStorage.setItem('taskdesk_has_session', 'true')
+      resetRelativeStores()
       set({ user: res.user, loading: false, error: null })
       return res.user
     } catch (err) {
@@ -37,6 +50,7 @@ export const useAuthStore = create((set) => ({
       set({ loading: true, error: null })
       const res = await api.post('/auth/register', { name, email, password })
       localStorage.setItem('taskdesk_has_session', 'true')
+      resetRelativeStores()
       set({ user: res.user, loading: false, error: null })
       return res.user
     } catch (err) {
@@ -52,6 +66,7 @@ export const useAuthStore = create((set) => ({
       console.error('Logout error:', err)
     } finally {
       localStorage.removeItem('taskdesk_has_session')
+      resetRelativeStores()
       set({ user: null, error: null })
     }
   },

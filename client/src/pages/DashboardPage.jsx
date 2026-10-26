@@ -7,10 +7,12 @@ import TaskBoard from '../components/TaskBoard.jsx'
 import TaskModal from '../components/TaskModal.jsx'
 import CreateTeamModal from '../components/CreateTeamModal.jsx'
 import InviteMemberModal from '../components/InviteMemberModal.jsx'
+import { useAuthStore } from '../store/useAuthStore.js'
 import { useTeamStore } from '../store/useTeamStore.js'
 import { useTaskStore } from '../store/useTaskStore.js'
 
 export default function DashboardPage() {
+  const { user } = useAuthStore()
   const { selectedTeam, fetchTeams, fetchInvitations, joinTeamWithToken } = useTeamStore()
   const { fetchTasks, fetchReminders, filters } = useTaskStore()
 
@@ -31,11 +33,13 @@ export default function DashboardPage() {
     }
   }
 
-  // Initial load: fetch user teams, due reminders, and pending team invitations
+  // Initial load / user switch: fetch user teams, due reminders, and pending team invitations
   useEffect(() => {
-    fetchTeams()
-    fetchReminders()
-    fetchInvitations()
+    if (user?.id) {
+      fetchTeams()
+      fetchReminders()
+      fetchInvitations()
+    }
 
     // Auto-detect invitation link params if user clicked an invite link (?token=...&teamId=...)
     const urlParams = new URLSearchParams(window.location.search)
@@ -51,12 +55,14 @@ export default function DashboardPage() {
           alert(err.message || 'Failed to join team with invitation link')
         })
     }
-  }, [])
+  }, [user?.id])
 
   // When selected team or filters change, reload tasks
   useEffect(() => {
     if (selectedTeam?.id) {
       fetchTasks(selectedTeam.id)
+    } else {
+      fetchTasks(null)
     }
   }, [selectedTeam?.id, filters.search, filters.assignedTo, filters.status, filters.priority])
 

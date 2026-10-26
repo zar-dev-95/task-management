@@ -14,14 +14,33 @@ export const useTeamStore = create((set, get) => ({
       set({ loading: true, error: null })
       const res = await api.get('/teams')
       const teams = res.teams || []
+      const currentSelected = get().selectedTeam
+      const isSelectedStillValid = currentSelected && teams.some((t) => Number(t.id) === Number(currentSelected.id))
+
       set({ teams, loading: false })
 
-      if (teams.length > 0 && !get().selectedTeam) {
+      if (isSelectedStillValid) {
+        get().selectTeam(currentSelected.id)
+      } else if (teams.length > 0) {
         get().selectTeam(teams[0].id)
+      } else {
+        set({ selectedTeam: null, members: [], userRole: null })
       }
     } catch (err) {
       set({ loading: false, error: err.message })
     }
+  },
+
+  resetTeamStore: () => {
+    set({
+      teams: [],
+      selectedTeam: null,
+      members: [],
+      userRole: null,
+      loading: false,
+      error: null,
+      invitations: [],
+    })
   },
 
   selectTeam: async (teamId) => {

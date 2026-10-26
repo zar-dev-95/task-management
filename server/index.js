@@ -14,9 +14,13 @@ dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 5000
-const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL)
+const isProduction =
+  process.env.NODE_ENV === 'production' ||
+  Boolean(process.env.VERCEL) ||
+  Boolean(process.env.RAILWAY_ENVIRONMENT) ||
+  Boolean(process.env.RAILWAY_PROJECT_ID)
 
-// Trust reverse proxy (required for Vercel / Azure cross-origin HTTPS cookies)
+// Trust reverse proxy (required for Railway / Vercel cross-origin HTTPS cookies)
 app.set('trust proxy', 1)
 
 const rawClientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
@@ -34,6 +38,7 @@ app.use(
       if (
         normalizedOrigin === cleanClientUrl ||
         normalizedOrigin.endsWith('.vercel.app') ||
+        normalizedOrigin.endsWith('.railway.app') ||
         normalizedOrigin.includes('localhost')
       ) {
         return callback(null, true)
@@ -57,7 +62,7 @@ if (usePgSession && process.env.DATABASE_URL) {
   sessionStore = new PgSession({
     pool,
     tableName: 'session',
-    createTableIfMissing: !isProduction,
+    createTableIfMissing: true,
   })
   sessionStore.on('error', (err) => {
     console.error('PostgreSQL Session Store Error:', err.message)
@@ -119,8 +124,8 @@ app.use((err, req, res, next) => {
 // In serverless environments (Vercel), Vercel manages the HTTP server lifecycle.
 // In traditional Node environments, listen on PORT.
 if (process.env.VERCEL !== '1') {
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`)
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT} (0.0.0.0)`)
   })
 }
 

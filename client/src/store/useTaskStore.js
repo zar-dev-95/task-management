@@ -25,8 +25,21 @@ export const useTaskStore = create((set, get) => ({
     })
   },
 
+  resetTaskStore: () => {
+    set({
+      tasks: [],
+      reminders: [],
+      loading: false,
+      error: null,
+      filters: { search: '', assignedTo: '', status: '', priority: '' },
+    })
+  },
+
   fetchTasks: async (teamId) => {
-    if (!teamId) return
+    if (!teamId) {
+      set({ tasks: [], loading: false })
+      return
+    }
     try {
       set({ loading: true, error: null })
       const { search, assignedTo, status, priority } = get().filters

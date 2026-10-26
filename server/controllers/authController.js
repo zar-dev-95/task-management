@@ -28,9 +28,12 @@ export const register = async (req, res, next) => {
 
     req.login(newUser, (err) => {
       if (err) return next(err)
-      return res.status(201).json({
-        message: 'Registration successful',
-        user: newUser,
+      req.session.save((saveErr) => {
+        if (saveErr) return next(saveErr)
+        return res.status(201).json({
+          message: 'Registration successful',
+          user: newUser,
+        })
       })
     })
   } catch (error) {
@@ -48,9 +51,12 @@ export const login = (req, res, next) => {
 
     req.login(user, (err) => {
       if (err) return next(err)
-      return res.json({
-        message: 'Login successful',
-        user,
+      req.session.save((saveErr) => {
+        if (saveErr) return next(saveErr)
+        return res.json({
+          message: 'Login successful',
+          user,
+        })
       })
     })
   })(req, res, next)
@@ -63,7 +69,17 @@ export const logout = (req, res, next) => {
     req.session.destroy((sessionErr) => {
       if (sessionErr) return next(sessionErr)
 
-      res.clearCookie('connect.sid', { path: '/' })
+      const isProduction =
+        process.env.NODE_ENV === 'production' ||
+        Boolean(process.env.VERCEL) ||
+        Boolean(process.env.RAILWAY_ENVIRONMENT) ||
+        Boolean(process.env.RAILWAY_PROJECT_ID)
+      res.clearCookie('connect.sid', {
+        path: '/',
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+      })
       return res.json({ message: 'Logged out successfully' })
     })
   })
