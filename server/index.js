@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import session from 'express-session'
 import connectPgSimple from 'connect-pg-simple'
 import passport from 'passport'
+import crypto from 'crypto'
 import { pool } from './config/db.js'
 import { configurePassport } from './config/passport.js'
 import authRoutes from './routes/auth.js'
@@ -14,6 +15,20 @@ dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 5000
+const sessionSecret = process.env.SESSION_SECRET || 'dev_secret_key_123'
+
+const signSessionId = (val, secret) => {
+  return (
+    val +
+    '.' +
+    crypto
+      .createHmac('sha256', secret)
+      .update(val)
+      .digest('base64')
+      .replace(/=+$/, '')
+  )
+}
+
 const isProduction =
   process.env.NODE_ENV === 'production' ||
   Boolean(process.env.VERCEL) ||
@@ -71,12 +86,29 @@ if (usePgSession && process.env.DATABASE_URL) {
 } else {
   // Built-in MemoryStore fallback for local development
   console.log('[Session Store] In-Memory fallback active (Local Development)')
-}
+// Cross-origin session bridge:
+// Modern browsers (Chrome, Safari, iOS, Brave) block third-party cookies when frontend (Vercel)
+// and backend (Railway) reside on different domains. This middleware bridges the session ID from
+// headers into the standard express-session cookie so PostgreSQL session and Passport work seamlessly.
+app.use((req, res, next) => {
+  const authHeader = req.headers.authorization
+  const bearerToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null
+  const headerToken = req.headers['x-session-id'] || bearerToken
+
+  if (headerToken && (!req.headers.cookie || !req.headers.cookie.includes('connect.sid'))) {
+    const signedToken = headerToken.startsWith('s:')
+      ? headerToken
+      : `s:${signSessionId(headerToken, sessionSecret)}`
+    const existing = req.headers.cookie ? `${req.headers.cookie}; ` : ''
+    req.headers.cookie = `${existing}connect.sid=${encodeURIComponent(signedToken)}`
+  }
+  next()
+})
 
 app.use(
   session({
     store: sessionStore,
-    secret: process.env.SESSION_SECRET || 'dev_secret_key_123',
+    secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     cookie: {

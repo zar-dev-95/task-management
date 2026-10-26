@@ -23,9 +23,13 @@ export const useAuthStore = create((set) => ({
     try {
       const res = await api.get('/auth/me')
       localStorage.setItem('taskdesk_has_session', 'true')
+      if (res.sessionId) {
+        localStorage.setItem('taskdesk_session_id', res.sessionId)
+      }
       set({ user: res.user, loading: false })
     } catch {
       localStorage.removeItem('taskdesk_has_session')
+      localStorage.removeItem('taskdesk_session_id')
       resetRelativeStores()
       set({ user: null, loading: false })
     }
@@ -36,6 +40,9 @@ export const useAuthStore = create((set) => ({
       set({ loading: true, error: null })
       const res = await api.post('/auth/login', { email, password })
       localStorage.setItem('taskdesk_has_session', 'true')
+      if (res.sessionId) {
+        localStorage.setItem('taskdesk_session_id', res.sessionId)
+      }
       resetRelativeStores()
       set({ user: res.user, loading: false, error: null })
       return res.user
@@ -50,6 +57,9 @@ export const useAuthStore = create((set) => ({
       set({ loading: true, error: null })
       const res = await api.post('/auth/register', { name, email, password })
       localStorage.setItem('taskdesk_has_session', 'true')
+      if (res.sessionId) {
+        localStorage.setItem('taskdesk_session_id', res.sessionId)
+      }
       resetRelativeStores()
       set({ user: res.user, loading: false, error: null })
       return res.user
@@ -66,6 +76,7 @@ export const useAuthStore = create((set) => ({
       console.error('Logout error:', err)
     } finally {
       localStorage.removeItem('taskdesk_has_session')
+      localStorage.removeItem('taskdesk_session_id')
       resetRelativeStores()
       set({ user: null, error: null })
     }

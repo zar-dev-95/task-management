@@ -33,6 +33,7 @@ export const register = async (req, res, next) => {
         return res.status(201).json({
           message: 'Registration successful',
           user: newUser,
+          sessionId: req.sessionID,
         })
       })
     })
@@ -56,6 +57,7 @@ export const login = (req, res, next) => {
         return res.json({
           message: 'Login successful',
           user,
+          sessionId: req.sessionID,
         })
       })
     })
@@ -87,7 +89,7 @@ export const logout = (req, res, next) => {
 
 export const getCurrentUser = (req, res) => {
   if (req.isAuthenticated && req.isAuthenticated()) {
-    return res.json({ user: req.user })
+    return res.json({ user: req.user, sessionId: req.sessionID })
   }
   return res.status(401).json({ error: 'Not authenticated' })
 }
