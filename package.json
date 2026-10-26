@@ -2,6 +2,7 @@
   "name": "taskdesk-monorepo",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "if [ -d 'server' ]; then cd server; fi && npm install",
     "start": "if [ -d 'server' ]; then cd server; fi && npm start"
